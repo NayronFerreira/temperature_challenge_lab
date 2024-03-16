@@ -14,6 +14,17 @@ func (a API) GetTemperatureTypesByCEP(w http.ResponseWriter, r *http.Request) {
 
 	locality, UF, err := a.GetLocationByCEP(cep)
 	if err != nil {
+
+		if err.Error() == "invalid zipcode" {
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+
+		if err.Error() == "can not find zipcode" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

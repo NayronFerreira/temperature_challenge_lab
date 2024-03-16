@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,13 +33,22 @@ func (a API) GetLocationByCEP(cep string) (locality, UF string, err error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusBadRequest {
+		return locality, UF, errors.New("invalid zipcode")
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return locality, UF, err
 	}
+
 	var viaCepRes model.ViaCepRes
 	if err = json.Unmarshal(body, &viaCepRes); err != nil {
 		return locality, UF, err
+	}
+
+	if resp.StatusCode == http.StatusOK && viaCepRes.Localidade == "" {
+		return locality, UF, errors.New("can not find zipcode")
 	}
 
 	return viaCepRes.Localidade, viaCepRes.Uf, nil
