@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,7 +28,16 @@ func (a API) GetLocationByCEP(cep string) (locality, UF string, err error) {
 		return locality, UF, err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	// Cria um http.Client com a verificação de certificado desativada
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return locality, UF, err
 	}
