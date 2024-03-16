@@ -13,5 +13,5 @@ func InitializeRoutes(config config.Config) {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Get("/{cep}", api.NewAPI(config).GetTemperatureTypesByCEP)
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(config.WebServerPort, router)
 }
