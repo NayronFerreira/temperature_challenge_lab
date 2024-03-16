@@ -10,13 +10,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/NayronFerreira/temperature_challenge_lab/infra/web/model"
+	model "github.com/NayronFerreira/temperature_challenge_lab/infra/web/model/response"
 )
 
-func (a API) GetTemperature(city, state string) (retVal model.WeatherRes, err error) {
+func (a API) GetCelciusByLocality(city, state string) (celcius float64, err error) {
 	timeoutSeconds, err := strconv.Atoi(a.Config.TimeoutSeconds)
 	if err != nil {
-		return retVal, err
+		return celcius, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
@@ -27,23 +27,23 @@ func (a API) GetTemperature(city, state string) (retVal model.WeatherRes, err er
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, weatherUrl, nil)
 	if err != nil {
-		return retVal, err
+		return celcius, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return retVal, err
+		return celcius, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return retVal, err
+		return celcius, err
+	}
+	var weatherRes model.WeatherRes
+	if err = json.Unmarshal(body, &weatherRes); err != nil {
+		return celcius, err
 	}
 
-	if err = json.Unmarshal(body, &retVal); err != nil {
-		return retVal, err
-	}
-
-	return retVal, nil
+	return weatherRes.Current.TempC, nil
 }
